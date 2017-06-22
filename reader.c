@@ -85,6 +85,18 @@ struct rt_line_lps {
 } __attribute__((__packed__));
 
 typedef struct event_line event_line;
+
+//NeMo Line Ref:
+/*
+ * struct neuronEvtDat{
+    id_type localID;
+    tw_lpid coreID;
+    tw_stime eventTime;
+    volt_type neuronVoltage;
+	u_int8_t eventType;
+}__attribute__((__packed__));
+ */
+
 struct event_line{
     tw_lpid src_lp;
     tw_lpid dest_lp;
@@ -94,9 +106,10 @@ struct event_line{
     tw_stime duration;
     //int event_type;
     uint_fast16_t localID;
-    tw_lpid globalID;
+    tw_lpid coreID;
     tw_stime eventTime;
     int32_t neuronVoltage;
+    u_int8_t eventType;
 } __attribute__((__packed__));
 
 typedef struct event_bin event_bin;
@@ -721,7 +734,8 @@ void event_read(FILE *file, FILE *output)
     if (g_combine)
         fprintf(output, "src_lp,dest_lp,recv_ts_vt,event_count\n");
     else
-        fprintf(output, "src_lp,dest_lp,recv_ts_vt,send_ts_vt,recv_ts_rt,duration,local_id,global_id,event_time,neuronvoltage\n");
+        fprintf(output,   "src_lp,dest_lp,recv_ts_vt,send_ts_vt,recv_ts_rt,duration,local_id,core_id,current_neuro_time,neuron_voltage,event_type (1=hb 2=out)\n");
+        //fprintf(output, "src_lp,dest_lp,recv_ts_vt,send_ts_vt,recv_ts_rt,duration,local_id,global_id,event_time,neuronvoltage\n");
         //fprintf(output, "src_lp,dest_lp,recv_ts_vt,send_ts_vt,recv_ts_rt\n");
 
     while (!feof(file))
@@ -931,7 +945,7 @@ void print_event_struct(FILE *output, event_line *line)
 {
     //fprintf(output, "%"PRIu64",%"PRIu64",%f,%f,%f\n", line->src_lp, line->dest_lp, line->recv_ts_vt, line->send_ts_vt, line->recv_ts_rt);
     //fprintf(output, "%"PRIu64",%"PRIu64",%f,%f,%f,%d\n", line->src_lp, line->dest_lp, line->recv_ts_vt, line->send_ts_vt, line->recv_ts_rt, line->event_type);
-    fprintf(output, "%"PRIu64",%"PRIu64",%f,%f,%f,%f,%"PRIuFAST16",%"PRIu64",%f,%d\n", line->src_lp, line->dest_lp, line->recv_ts_vt, line->send_ts_vt, line->recv_ts_rt, line->duration, line->localID, line->globalID, line->eventTime, line->neuronVoltage);
+    fprintf(output, "%"PRIu64",%"PRIu64",%f,%f,%f,%f,%"PRIuFAST16",%"PRIu64",%f,%d,%"PRIu8"\n", line->src_lp, line->dest_lp, line->recv_ts_vt, line->send_ts_vt, line->recv_ts_rt, line->duration, line->localID, line->coreID, line->eventTime, line->neuronVoltage,line->eventType);
 }
 
 void print_binned_events(FILE *output)
